@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ · gir</title>
+<style>
+:root {
+  --paper: #fbfaf6; --panel: #ffffff; --ink: #1d1f23; --muted: #6b6f76; --faint: #e7e4dc;
+  --line: #d9d5ca; --amber: #c96f00; --amber-bg: #fff3e0; --red: #d42a20; --red-bg: #fdecea;
+  --green: #1f8f4e; --chip: #f1eee6; --code: #f7f5ef; --sel: #2f6fde;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: ui-rounded, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #16171a; --panel: #1d1f23; --ink: #ecebe6; --muted: #9a9ea6; --faint: #2a2c31;
+    --line: #34363c; --amber: #f0a030; --amber-bg: #3a2a12; --red: #ff6157; --red-bg: #3d1d1b;
+    --green: #4cc47e; --chip: #2a2c31; --code: #191a1d; --sel: #6e9cff;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #16171a; --panel: #1d1f23; --ink: #ecebe6; --muted: #9a9ea6; --faint: #2a2c31;
+  --line: #34363c; --amber: #f0a030; --amber-bg: #3a2a12; --red: #ff6157; --red-bg: #3d1d1b;
+  --green: #4cc47e; --chip: #2a2c31; --code: #191a1d; --sel: #6e9cff;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--paper); color: var(--ink); font: 14px/1.45 var(--sans); }
+header { display: flex; align-items: center; gap: 16px; padding: 14px 20px;
+  border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+header .brand { font-weight: 700; letter-spacing: .02em; color: var(--muted); font-size: 13px; }
+header h1 { font-size: 18px; margin: 0; font-weight: 650; }
+header .sum { color: var(--muted); }
+header .sum b.e { color: var(--red); } header .sum b.ok { color: var(--green); }
+header .spacer { flex: 1; }
+button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+button:focus-visible, .station:focus-visible, .pin:focus-visible { outline: 2px solid var(--sel); outline-offset: 2px; }
+main { display: grid; grid-template-columns: 1fr minmax(380px, 40%); height: calc(100% - 59px); }
+.mapwrap { overflow: auto; position: relative; }
+.legend { display: flex; gap: 16px; padding: 12px 20px 0; color: var(--muted); font-size: 12px; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -2px; margin-right: 5px; }
+.legend .l-new { background: var(--ink); }
+.legend .l-mod { border: 3px solid var(--amber); background: var(--paper); }
+.legend .l-err { background: var(--red); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); }
+.legend .l-warn { border: 2px solid var(--muted); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); }
+.legend .l-fx { width: auto; height: auto; border-radius: 8px; padding: 0 6px; font-style: normal;
+  background: var(--amber-bg); color: var(--amber); font-size: 11px; }
+svg { display: block; }
+.track { fill: none; stroke: var(--ink); stroke-width: 6; stroke-linecap: round; }
+.lead { fill: none; stroke: var(--ink); stroke-width: 6; stroke-linecap: round; stroke-dasharray: 2 10; opacity: .5; }
+.station { cursor: pointer; }
+.station .hit { fill: transparent; }
+.station .dot { fill: var(--ink); stroke: var(--paper); stroke-width: 3; }
+.station.modified .dot { fill: var(--paper); stroke: var(--amber); stroke-width: 5; }
+.station.sel .dot { stroke: var(--sel); stroke-width: 5; }
+.station.modified.sel .dot { stroke: var(--sel); }
+.station text { text-anchor: middle; }
+.station .name { font: 600 14.5px var(--sans); fill: var(--ink); }
+.station .loc { font: 11.5px var(--mono); fill: var(--muted); }
+.station .changed { font: 600 12px var(--sans); fill: var(--amber); }
+.chip rect { fill: var(--chip); }
+.chip text { font: 600 11px var(--sans); fill: var(--muted); }
+.chip.new rect { fill: var(--amber-bg); } .chip.new text { fill: var(--amber); }
+.pin { cursor: pointer; }
+.pin .stem { stroke: var(--muted); stroke-width: 1.5; }
+.pin.err .head { fill: var(--red); }
+.pin.warn .head { fill: var(--panel); stroke: var(--muted); stroke-width: 2; }
+.pin text { font: 700 12px var(--sans); text-anchor: middle; fill: #fff; pointer-events: none; }
+.pin.warn text { fill: var(--muted); }
+.pin.sel .head { stroke: var(--sel); stroke-width: 3; }
+@keyframes drop { 0% { transform: translateY(-6px); } 60% { transform: translateY(1px); } 100% { transform: none; } }
+.pin.sel { animation: drop .35s ease-out; }
+.quiet { padding: 4px 20px 24px; color: var(--muted); font-size: 12.5px; }
+.quiet button { padding: 1px 8px; font-size: 12px; margin: 2px 2px; border-radius: 6px; color: var(--muted); }
+.empty { padding: 60px 20px; color: var(--muted); font-size: 16px; }
+aside { background: var(--panel); border-left: 1px solid var(--line); overflow: auto; }
+.problems { list-style: none; margin: 0; padding: 8px; border-bottom: 1px solid var(--line); }
+.problems li { display: flex; gap: 10px; padding: 8px 10px; border-radius: 8px; cursor: pointer; align-items: baseline; }
+.problems li:hover { background: var(--faint); }
+.problems li.sel { background: var(--faint); box-shadow: inset 3px 0 0 var(--sel); }
+.num { flex: none; width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center;
+  font: 700 12px var(--sans); background: var(--red); color: #fff; }
+.num.warn { background: transparent; color: var(--muted); border: 2px solid var(--muted); }
+.problems .where { color: var(--muted); font: 11.5px var(--mono); display: block; }
+.problems .none { color: var(--green); padding: 10px; }
+code { font: 12.5px var(--mono); background: var(--faint); padding: 1px 4px; border-radius: 4px; }
+.detail { padding: 16px 18px 40px; }
+.detail h2 { font-size: 16px; margin: 0 0 4px; font-family: var(--mono); font-weight: 600; word-break: break-all; }
+.badge { font: 600 11px var(--sans); padding: 2px 8px; border-radius: 10px; background: var(--faint); color: var(--muted); margin-left: 6px; vertical-align: 2px; }
+.badge.modified { background: var(--amber-bg); color: var(--amber); }
+.meta { color: var(--muted); font-size: 12.5px; margin-bottom: 12px; }
+.meta a { color: var(--sel); }
+.fx { margin: 0 0 12px; padding: 0; list-style: none; font-size: 12.5px; }
+.fx li { padding: 2px 0; color: var(--muted); }
+.fx b { color: var(--ink); font-weight: 600; }
+.fx .tag { color: var(--amber); font-weight: 700; }
+pre { margin: 0; background: var(--code); border: 1px solid var(--line); border-radius: 10px; overflow: auto;
+  font: 12.5px/1.6 var(--mono); padding: 8px 0; }
+.ln { display: block; padding: 0 12px 0 0; white-space: pre; border-left: 3px solid transparent; }
+.ln .no { display: inline-block; width: 44px; text-align: right; padding-right: 12px; color: var(--muted); opacity: .7; user-select: none; }
+.ln.chg { border-left-color: var(--green); }
+.ln.err { background: var(--red-bg); }
+.ln.warn { background: var(--faint); }
+.note { display: block; white-space: normal; margin: 2px 12px 6px 59px; padding: 6px 10px; border-radius: 8px;
+  font: 12.5px/1.4 var(--sans); background: var(--panel); border: 1px solid var(--red); }
+.note.warn { border-color: var(--line); }
+.note small { display: block; color: var(--muted); }
+.note.sel { box-shadow: 0 0 0 2px var(--sel); }
+.keys { color: var(--muted); font-size: 12px; }
+.keys kbd { font: 11px var(--mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; }
+@media (max-width: 900px) {
+  main { display: block; height: auto; }
+  aside { border-left: 0; border-top: 1px solid var(--line); }
+  header { padding: 12px 16px; } .legend, .quiet { padding-left: 16px; padding-right: 16px; }
+  .keys { display: none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">gir</span>
+  <h1>__TITLE__</h1>
+  <span class="sum">__SUMMARY__</span>
+  <span class="spacer"></span>
+  <span class="keys"><kbd>j</kbd> <kbd>k</kbd> next problem · <kbd>c</kbd> copy fix prompt</span>
+  <button class="primary" id="copy" hidden>Copy fix prompt for agent</button>
+</header>
+<main>
+  <div class="mapwrap" id="mapwrap">
+    <div class="legend">
+      <span><i class="l-new"></i>new function</span>
+      <span><i class="l-mod"></i>changed existing function</span>
+      <span><i class="l-err"></i>proven problem</span>
+      <span><i class="l-warn"></i>no test reaches it</span>
+      <span><i class="l-fx">+ Database</i> newly touches</span>
+    </div>
+    <div id="map">__SVG__</div>
+    <div class="quiet" id="quiet"></div>
+  </div>
+  <aside>
+    <ul class="problems" id="problems"></ul>
+    <div class="detail" id="detail"></div>
+  </aside>
+</main>
+<script id="data" type="application/json">__DATA__</script>
+<script>
+(() => {
+  const D = JSON.parse(document.getElementById("data").textContent);
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const md = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+  const pins = D.pins;
+  let cur = 0;   // selected pin number, 0 = none
+
+  if (!$(".station")) {
+    $("#map").innerHTML = '<div class="empty">No behavior changes to map.</div>';
+  }
+
+  // problem list
+  const list = $("#problems");
+  if (!pins.length) {
+    list.innerHTML = '<li class="none">No proven problems in this change.</li>';
+  }
+  for (const p of pins) {
+    const f = D.funcs[p.id], pr = f.problems[p.k];
+    const li = document.createElement("li");
+    li.dataset.pin = p.n;
+    li.innerHTML = `<span class="num ${pr.severity === "error" ? "" : "warn"}">${p.n}</span>
+      <span>${md(pr.message)}<span class="where">${esc(f.path)}:${pr.line} · ${esc(f.qualname)}</span></span>`;
+    li.onclick = () => selectPin(p.n);
+    list.appendChild(li);
+  }
+
+  // things that aren't on the map
+  const q = [], H = D.hidden;
+  const btns = ids => ids.map(id => `<button data-id="${esc(id)}">${esc(D.funcs[id].qualname)}</button>`).join("");
+  if (H.cosmetic.length) q.push(`Formatting or docs only, no behavior change: ${btns(H.cosmetic)}`);
+  if (H.tests.length) q.push(`Tests changed: ${btns(H.tests)}`);
+  if (H.removed.length) q.push(`Removed: ${btns(H.removed)}`);
+  for (const n of D.notes) q.push(esc(n));
+  $("#quiet").innerHTML = q.map(x => `<div>${x}</div>`).join("");
+  $$("#quiet button").forEach(b => b.onclick = () => selectFunc(b.dataset.id));
+
+  let quiet = true;   // don't scroll the page on first load
+  function scrollTo(el, opts) { if (el && !quiet) el.scrollIntoView(opts); }
+  function selectPin(n) {
+    const p = pins.find(p => p.n === n);
+    if (!p) return;
+    cur = n;
+    selectFunc(p.id, D.funcs[p.id].problems[p.k].line);
+    $$(".problems li").forEach(li => li.classList.toggle("sel", +li.dataset.pin === n));
+    $$(".pin").forEach(el => el.classList.toggle("sel", +el.dataset.pin === n));
+    scrollTo($(`.problems li[data-pin="${n}"]`), { block: "nearest" });
+  }
+
+  function selectFunc(id, focusLine) {
+    const f = D.funcs[id];
+    if (!focusLine) { cur = 0; $$(".problems li, .pin").forEach(el => el.classList.remove("sel")); }
+    $$(".station").forEach(el => el.classList.toggle("sel", el.dataset.id === id));
+    const st = $$(".station").find(el => el.dataset.id === id);
+    scrollTo(st, { block: "nearest", inline: "nearest", behavior: "smooth" });
+
+    const badge = { new: "new", modified: "changed", cosmetic: "formatting only", removed: "removed" }[f.status];
+    const href = `vscode://file/${encodeURI(D.root + "/" + f.path)}:${focusLine || f.lineno}`;
+    const fx = f.effects.map(e => `<li><b>${esc(D.labels[e.kind])}</b>${e.new ? ' <span class="tag">new</span>' : ""}
+      — ${esc(e.detail)} · line ${e.line}</li>`).join("");
+    const byLine = {};
+    f.problems.forEach((p, k) => (byLine[p.line] ||= []).push([p, k]));
+    const changed = new Set(f.changed_lines);
+    const start = f.lineno;
+    const code = f.source.split("\n").map((t, i) => {
+      const no = start + i, ps = byLine[no] || [];
+      const sev = ps.some(([p]) => p.severity === "error") ? "err" : ps.length ? "warn" : "";
+      let row = `<span class="ln ${changed.has(no) ? "chg" : ""} ${sev}" id="L${no}"><span class="no">${no}</span>${esc(t)}</span>`;
+      for (const [p, k] of ps) {
+        const pn = pins.find(x => x.id === id && x.k === k);
+        row += `<span class="note ${p.severity === "error" ? "" : "warn"} ${pn && pn.n === cur ? "sel" : ""}">
+          ${pn ? `<span class="num ${p.severity === "error" ? "" : "warn"}">${pn.n}</span> ` : ""}${md(p.message)}
+          <small>How we know: ${md(p.evidence)}</small></span>`;
+      }
+      return row;
+    }).join("");
+
+    $("#detail").innerHTML = `
+      <h2>${esc(f.qualname)}<span class="badge ${f.status}">${badge}</span></h2>
+      <div class="meta">${esc(f.path)}:${f.lineno}
+        ${f.status === "modified" && f.call_sites ? ` · used by ${f.call_sites} function${f.call_sites === 1 ? "" : "s"}` : ""}
+        · <a href="${href}">open in editor</a></div>
+      ${fx ? `<ul class="fx">${fx}</ul>` : ""}
+      <pre>${code}</pre>`;
+    const target = focusLine && document.getElementById("L" + focusLine);
+    if (target && !quiet) target.scrollIntoView({ block: "nearest" });
+  }
+
+  $$(".pin").forEach(el => {
+    el.onclick = e => { e.stopPropagation(); selectPin(+el.dataset.pin); };
+    el.onkeydown = e => { if (e.key === "Enter") selectPin(+el.dataset.pin); };
+  });
+  $$(".station").forEach(el => {
+    const go = () => {
+      const first = pins.find(p => p.id === el.dataset.id);
+      first ? selectPin(first.n) : selectFunc(el.dataset.id);
+    };
+    el.onclick = go;
+    el.onkeydown = e => { if (e.key === "Enter") go(); };
+  });
+
+  // copy fix prompt
+  const copyBtn = $("#copy");
+  async function copy() {
+    if (!D.prompt) return;
+    try { await navigator.clipboard.writeText(D.prompt); }
+    catch {
+      const t = document.createElement("textarea"); t.value = D.prompt;
+      document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove();
+    }
+    copyBtn.textContent = "Copied — paste it to your agent";
+    setTimeout(() => copyBtn.textContent = "Copy fix prompt for agent", 2200);
+  }
+  if (D.prompt) { copyBtn.hidden = false; copyBtn.onclick = copy; }
+
+  document.addEventListener("keydown", e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.key === "j" || e.key === "ArrowRight") { if (pins.length) selectPin(cur >= pins.length ? 1 : cur + 1); e.preventDefault(); }
+    if (e.key === "k" || e.key === "ArrowLeft") { if (pins.length) selectPin(cur <= 1 ? pins.length : cur - 1); e.preventDefault(); }
+    if (e.key === "c") copy();
+  });
+
+  // start where the problem is
+  if (pins.length) selectPin(1);
+  else if ($(".station")) selectFunc($(".station").dataset.id);
+  quiet = false;
+})();
+</script>
+</body>
+</html>
